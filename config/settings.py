@@ -2,15 +2,18 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-5nypkc80q_4bbyt_n*2!qe_n3!@f5uyh+49x()jur@(lee4%$3'
+SECRET_KEY = os.getenv('SECRET_KEY_DRF')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -30,6 +33,9 @@ INSTALLED_APPS = [
 
     'rest_framework', # DRF
     'rest_framework_simplejwt', # авторизация, токен
+    'drf_yasg', # документация
+    'corsheaders', # безопасность CORS
+    'django_celery_beat',
 
     # приложение django
     'habit',
@@ -44,6 +50,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware', # безопасность CORS
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -137,8 +144,48 @@ REST_FRAMEWORK = {
 }
 
 
-# токен время обновления
+# токен время обновления, SIMPLE_JWT
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
+
+# CORS
+# CORS_ALLOWED_ORIGINS = ['<http://localhost:8000/>']
+# CORS_ALLOW_ALL_ORIGINS = False
+# CSRF_TRUSTED_ORIGINS = ['http://0.0.0.0', 'http://localhost', 'https://*']
+# ALLOWED_HOSTS = ['*']
+
+CORS_ALLOWED_ORIGINS = [
+    "https://read-only.example.com",
+    "https://read-and-write.example.com",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://read-and-write.example.com",
+]
+
+
+# CELERY settings
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379")
+CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379")
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Europe/Moscow'
+
+
+# SETTINGS e-mail yahoo.com
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.mail.yahoo.com'
+EMAIL_PORT = 465 # SSL
+EMAIL_USE_SSL = True
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+EMAIL_SERVER = EMAIL_HOST_USER
+EMAIL_SERVER = EMAIL_HOST_USER
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+# Telegram bot api
+TELEGRAM_BOT_API = os.getenv("TELEGRAM_BOT_API")
